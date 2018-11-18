@@ -30,42 +30,49 @@ include("PHP/MysqlStatement.class.php");
 /* get the mysql object */
 $Mysql = new Mysql();
 
+//SELECT * FROM user WHERE name="matthias";
 
-/* settings data if a new version is out there and the std STP ID */
-//SELECT * FROM user WHERE name="matthias" AND pw="1234";
 
-$sql = "SELECT * FROM user WHERE name=:0 AND pw=:1";
-$MysqlStatement_select = $Mysql->getMysqlStatement($sql);
-$MysqlStatement_select->execute($_POST[name], $_POST[pw]);
 
+if(isset($_POST[name]) && ($_POST[name] != null)){
+    $sql = "SELECT * FROM user WHERE name=:0";
+    $MysqlStatement_select_user = $Mysql->getMysqlStatement($sql);
+    $MysqlStatement_select_user->execute($_POST[name]);
+    $user = $MysqlStatement_select_user->fetchArray();
+}
+
+//get the user data
+if(isset($user['id'])){
+    $sql = "SELECT * FROM userdata WHERE user_id=:0";
+    $MysqlStatement_select_data = $Mysql->getMysqlStatement($sql);
+    $MysqlStatement_select_data->execute($user['id']);
+}
 ?>
 
 <div data-role="page" id="pageone">
     <div data-role="header">
-        <h1>Login</h1>
+        <h1>User Data</h1>
 
     </div>
 
     <div data-role="main" class="ui-content">
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post" >
             Name: <input type="text" name="name"><br>
-            PW: <input type="text" name="pw"><br>
-            <input type="submit" value="Login">
+            <input type="submit" value="Show me">
         </form>
-    </div>
-
-    <?php echo "<br /> SQL Statement: <br/>" . $MysqlStatement_select->sql; ?>
-
-    <?php echo "<br /> NUM: " . $MysqlStatement_select->num_rows; ?>
 
 
     <?php
-
-    echo "<br /> Beliebiger Inhalt: <br />";
-    while ($data = $MysqlStatement_select->fetchArray()) {
-        echo $data['content'];
+    if($MysqlStatement_select_data != null){
+        while ($user_data = $MysqlStatement_select_data->fetchArray()) {
+            echo "<br /> <div style='color:dodgerblue;'>Film: " . $user_data['movie'] . "</div>";
+            echo "<label for='slider'>Rating (User):</label>";
+            echo "<input data-theme=\"b\" type='range' name='slider' id='slider' value='".$user_data['rating']."' min='0' max='5'>";
+        }
     }
     ?>
+    </div>
+
 </div>
 
 
